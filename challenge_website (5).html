@@ -1,0 +1,276 @@
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snooker Challenges</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #snooker-challenges-root {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="snooker-challenges-root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Storage configuration - uses in-memory storage as fallback
+        const createStorage = () => {
+            const memoryStore = {};
+            
+            return {
+                getItem: (key) => {
+                    try {
+                        return localStorage.getItem(key);
+                    } catch (e) {
+                        return memoryStore[key] || null;
+                    }
+                },
+                setItem: (key, value) => {
+                    try {
+                        localStorage.setItem(key, value);
+                    } catch (e) {
+                        memoryStore[key] = value;
+                    }
+                }
+            };
+        };
+
+        const storage = createStorage();
+        const STORAGE_KEY = 'snooker_challenges';
+        // Clear stored data so updated challenge descriptions always load fresh
+
+        const defaultChallenges = [
+            {
+                id: 1,
+                title: "White Ball Challenge",
+                description: "Demonstrate an understanding of snooker including table setup",
+                difficulty: "Easy",
+                completed: false,
+                image: "https://raw.githubusercontent.com/yoursnookercoach-lang/challengesContainer/f066f91e3d7449ba24cea58a89c24157208ad1df/Challenge-1.png"
+            },
+            {
+                id: 2,
+                title: "Red Ball Challenge",
+                description: ["1 - Play the cue ball off the brown spot, up the table over the blue, pink and black spots, and back again. Part of the cue ball must cross the Baulk line. Put reds each side of the spots 4 balls width apart as a guide.", "2 - Pot the cue ball into the green middle and corner pocket off the green spot. Also into the yellow middle and corner off the yellow spot.", "3 - Pot six consecutive reds (placed over each pocket) starting from Baulk.", "4 - Place the cue ballon the blue spot, using the rest pot the cue ball into the four corner pockets."],
+                difficulty: "Easy",
+                completed: false,
+                image: "https://raw.githubusercontent.com/yoursnookercoach-lang/challengesContainer/refs/heads/main/Challenge-2.png"
+            },
+            {
+                id: 3,
+                title: "Yellow Ball Challenge",
+                description: ["1 - Play the cue ball from the Green or Yellow pocket towards the top black cushion and back down the table to pot the red.", "2 - Start anywhere on the table with the cue ball and attempt to pot any 5 balls.", "3 - Pot the blue, pink and black straight off their spots, from both sides of the table. Try doing this using run through.", "4 - Starting with the white in the 'D' and the colours two balls width into the table, (as in the diagram) pot the colours in the correct order."],
+                difficulty: "Easy",
+                completed: false,
+                image: "https://raw.githubusercontent.com/yoursnookercoach-lang/challengesContainer/refs/heads/main/YellowBallChallenge.png"
+            },
+            {
+                id: 4,
+                title: "Green Ball Challenge",
+                description: ["1 - Play the cue ball from the yellow spot to the green spot in no more than 5 shots.", "2 - Pot the blue, brown and pink straight, from both sides of the table using stun and screw.", "3 - Start by potting a red and then any colour proceed to clear the table, place the balls at least two balls width into the table.", "4 - Pot the yellow, green and brown in sequence, off this spots, hitting a side cushion with the cue ball on the first shot."],
+                difficulty: "Medium",
+                completed: false,
+                image: "https://raw.githubusercontent.com/yoursnookercoach-lang/challengesContainer/refs/heads/main/GreenBallChallenge.png"
+            },
+            {
+                id: 5,
+                title: "Brown Ball Challenge",
+                description: ["1 - Place the cueball touching the bottimi cushion directly behind the brown spot. Pot the cue ball into the middle and far corner pockets. Repeat this from the top cushion, directly behind the black spot.", "2 - Pot the blue into the middle pockets from both sides of the table, playing 3/4, 1/2,1/4 and fine cut contacts.", "3 - Pot five consecutive blacks off the spot, playing the next shot from where the cue ball finishes. The cue ball must strike a cushion on the first shot.", "3a - As (3) but with the pink ball. (top corner and middle pockets only).", "3b - As (3) but with the clue ball. The cue ball must hit either the top or bottom cusion on the first shot. (middle pockets only).", "4 - Put the cue ball on the brown spot, the blue on its own spot, play the blue on the top cushion and back to get a cannon with the cue ball around the pink spot."],
+                difficulty: "Medium",
+		completed: false,
+                image: "https://raw.githubusercontent.com/yoursnookercoach-lang/challengesContainer/refs/heads/main/BrownBallChallenge.png"
+            },
+            {
+                id: 6,
+                title: "Blue Ball Challenge",
+                description: ["1 - Pot the colours in their sequence off their spots.", "2 - Pot five consecutive blues off the spot, with all the colours on their spots, striking the bottom cushion with the cue ball, with teh first shot.", "3 - Place the blue ball and the cue ball diagonally straight into a top pocket with the white on the baulk line pot 8 out of 20 blues. (ten each side).", "4 - Place the cue ball on the brown spot and put a red over the two middle and two bottom pockets, playing the cue ball, plain ball off the top cusion first, pot all four balls also play this off the black spot, hitting the bottom cushion first."],
+                difficulty: "Medium",
+                completed: false,
+                image: "https://raw.githubusercontent.com/yoursnookercoach-lang/challengesContainer/refs/heads/main/BlueBallChallenge.png"
+	    },           
+ 	    {
+                id: 7,
+                title: "Pink Ball Challenge",
+                description: ["1 - Place the cueball in a position to p[ot the blue and cannon a red off the cushion do both sides. Cannon a minimum of 3 out of 5 reds on each side in 10 shots or less.", "2 - Place five reds parallel to the baulk line, approximately halfway between the brown and blue spots. Place the cue ball on the basulk line, each time playing a straight pot into a top corner pocket (3 out of 5).", "3 - Place the reds where shown and clear all the reds.", "4 - Make a forty plus break on the line up. Two reds between the blasck and the top cushion."],
+                difficulty: "Hard",
+                completed: false,
+                image: "https://raw.githubusercontent.com/yoursnookercoach-lang/challengesContainer/refs/heads/main/PinkBallChallenge.png"
+            },
+            {
+                id: 8,
+                title: "Black Ball Challenge",
+                description: ["1 - Start by potting a blue in any pocket, replace it back on its spot then pot a red followed by another blue till all reds are potted and have been taken with a blue.", "2 - Place the cue ball in a position to pot the black and cannon a red off the cushion do both sides. Cannon a minimum of 3 out of five reds on each side in 10 shots or less.", "3 - Make a 50 plus break on the line up, hitting a cushion every time with the cue ball. Two reds between the black and top cushion.", "4 - Place all colours as shown and place the cue ball where you think you will pot the red to then cannon a colour, the white must hit the black cushion. 5 attempts on each colour."],
+                difficulty: "Hard",
+                completed: false,
+                image: "https://raw.githubusercontent.com/yoursnookercoach-lang/challengesContainer/refs/heads/main/BlackBallChallenge.png"
+            },
+		
+                 ];
+
+        const CheckIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        );
+
+        const SnookerChallenges = () => {
+            const [challenges, setChallenges] = useState(() => {
+                const saved = storage.getItem(STORAGE_KEY);
+                if (saved) {
+                    try {
+                        const savedData = JSON.parse(saved);
+                        return defaultChallenges.map(challenge => {
+                            const savedChallenge = savedData.find(s => s.id === challenge.id);
+                            return savedChallenge ? { ...challenge, completed: savedChallenge.completed } : challenge;
+                        });
+                    } catch (e) {
+                        return defaultChallenges;
+                    }
+                }
+                return defaultChallenges;
+            });
+
+            useEffect(() => {
+                storage.setItem(STORAGE_KEY, JSON.stringify(challenges));
+            }, [challenges]);
+
+            const toggleComplete = (id) => {
+                setChallenges(challenges.map(challenge => 
+                    challenge.id === id 
+                        ? { ...challenge, completed: !challenge.completed }
+                        : challenge
+                ));
+            };
+
+            const resetProgress = () => {
+                if (window.confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                    setChallenges(defaultChallenges);
+                }
+            };
+
+            const getDifficultyColor = (difficulty) => {
+                switch(difficulty) {
+                    case 'Easy': return 'bg-green-100 text-green-800';
+                    case 'Medium': return 'bg-yellow-100 text-yellow-800';
+                    case 'Hard': return 'bg-orange-100 text-orange-800';
+                    case 'Expert': return 'bg-red-100 text-red-800';
+                    default: return 'bg-gray-100 text-gray-800';
+                }
+            };
+
+            const completedCount = challenges.filter(c => c.completed).length;
+            const totalCount = challenges.length;
+
+            return (
+                <div className="w-full bg-gradient-to-br from-green-900 to-green-700 p-4 sm:p-6 rounded-lg">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-2xl p-4 sm:p-8 mb-6">
+                            <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-3">
+                                <div>
+                                    <h1 className="text-3xl sm:text-4xl font-bold text-green-900 mb-2">Snooker Challenges</h1>
+                                    <p className="text-gray-600">Master your skills one challenge at a time</p>
+                                </div>
+                                <button
+                                    onClick={resetProgress}
+                                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium whitespace-nowrap"
+                                >
+                                    Reset Progress
+                                </button>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-green-900">Progress</span>
+                                    <span className="text-sm font-medium text-green-900">{completedCount}/{totalCount}</span>
+                                </div>
+                                <div className="w-full bg-green-200 rounded-full h-3">
+                                    <div 
+                                        className="bg-green-600 h-3 rounded-full transition-all duration-500"
+                                        style={{ width: `${(completedCount / totalCount) * 100}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-6">
+                            {challenges.map((challenge) => (
+                                <div 
+                                    key={challenge.id}
+                                    className={`bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${
+                                        challenge.completed ? 'opacity-75' : 'hover:shadow-xl'
+                                    }`}
+                                >
+                                    <div className="flex flex-col md:flex-row">
+                                        <div className="md:w-1/3 relative">
+                                            <img 
+                                                src={challenge.image} 
+                                                alt={challenge.title}
+                                                className="w-full h-48 md:h-full object-contain bg-white"
+                                            />
+                                            {challenge.completed && (
+                                                <div className="absolute inset-0 bg-green-600 bg-opacity-40 flex items-center justify-center">
+                                                    <div className="bg-white rounded-full p-3">
+                                                        <div className="w-8 h-8 text-green-600">
+                                                            <CheckIcon />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="md:w-2/3 p-6 flex flex-col justify-between">
+                                            <div>
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <h2 className="text-2xl font-bold text-gray-900">{challenge.title}</h2>
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(challenge.difficulty)}`}>
+                                                        {challenge.difficulty}
+                                                    </span>
+                                                </div>
+                                                <div className="text-gray-600 mb-4">
+                                    {Array.isArray(challenge.description)
+                                        ? challenge.description.map((line, i) => (
+                                            <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
+                                        ))
+                                        : <p>{challenge.description}</p>
+                                    }
+                                </div>
+                                            </div>
+                                            
+                                            <button
+                                                onClick={() => toggleComplete(challenge.id)}
+                                                className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
+                                                    challenge.completed
+                                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                }`}
+                                            >
+                                                {challenge.completed ? (
+                                                    <span className="flex items-center justify-center gap-2">
+                                                        <CheckIcon />
+                                                        Completed
+                                                    </span>
+                                                ) : (
+                                                    'Mark as Complete'
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<SnookerChallenges />, document.getElementById('snooker-challenges-root'));
+    </script>
+</body>
+</html>
